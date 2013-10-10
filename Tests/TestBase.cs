@@ -17,7 +17,8 @@ namespace Tests
 			{
 				if(_initialized)
 					return;
-				Event.Init (Directory.GetCurrentDirectory ());
+				if (Path.DirectorySeparatorChar == '\\')
+					Event.Init(Directory.GetCurrentDirectory());
 				_initialized = true;
 			}
 			
