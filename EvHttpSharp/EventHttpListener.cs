@@ -23,6 +23,7 @@ namespace EvHttpSharp
 
 		public EventHttpListener(RequestCallback cb)
 		{
+			LibLocator.TryToLoadDefaultIfNotInitialized();
 			_cb = cb;
 		}
 
