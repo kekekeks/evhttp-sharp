@@ -90,11 +90,10 @@ namespace EvHttpSharp
 
 		private void DoDispose()
 		{
-
+			if (_evHttp != null && !_evHttp.IsInvalid)
+				_evHttp.Dispose ();
 			if (_eventBase != null && !_eventBase.IsInvalid)
 				_eventBase.Dispose();
-			if (_evHttp != null && !_evHttp.IsInvalid)
-				_evHttp.Dispose();
 		}
 
 		public void Dispose()
@@ -104,6 +103,7 @@ namespace EvHttpSharp
 			else if (_eventBase != null && !_eventBase.IsClosed)
 			{
 				_stop = true;
+				Sync(() => Event.EventBaseLoopbreak(_eventBase));
 				if (_thread != Thread.CurrentThread)
 					_thread.Join ();
 			}

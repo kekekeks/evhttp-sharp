@@ -40,6 +40,7 @@ namespace Tests
 			{
 				server.Start("127.0.0.1", _freePort);
 				var wc = new WebClient();
+				
 				wc.DownloadData(_urlBase);
 			}
 			CheckPortIsStillFree();
