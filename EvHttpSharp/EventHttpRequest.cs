@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using EvHttpSharp.Interop;
 
@@ -40,8 +41,9 @@ namespace EvHttpSharp
 		public void Respond(System.Net.HttpStatusCode code, IDictionary<string, string> headers, byte[] body)
 		{
 			var pHeaders = Event.EvHttpRequestGetOutputHeaders(_handle);
-			foreach (var header in headers)
+			foreach (var header in headers.Where(h => h.Key != "Content-Length"))
 				Event.EvHttpAddHeader(pHeaders, header.Key, header.Value);
+			Event.EvHttpAddHeader(pHeaders, "Content-Length", body.Length.ToString());
 			var buffer = Event.EvBufferNew();
 			Event.EvBufferAdd(buffer, body, new IntPtr(body.Length));
 			_listener.Sync(() =>
