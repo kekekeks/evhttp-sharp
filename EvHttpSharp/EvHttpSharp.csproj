@@ -44,6 +44,7 @@
     <Compile Include="Interop\EvBuffer.cs" />
     <Compile Include="Interop\Event.cs" />
     <Compile Include="Interop\EventBase.cs" />
+    <Compile Include="Interop\EvUserEvent.cs" />
     <Compile Include="Interop\EvEvent.cs" />
     <Compile Include="Interop\EvHttp.cs" />
     <Compile Include="Interop\EvHttpBoundSocket.cs" />

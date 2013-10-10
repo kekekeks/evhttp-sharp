@@ -99,15 +99,22 @@ namespace EvHttpSharp.Interop
 			public delegate int event_free (IntPtr ev);
 
 			[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
-			public delegate void event_active(EvEvent ev, int res = 0, short ignored = 0);
+			public delegate void event_active (EvEvent ev, int res = 0, short ignored = 0);
 
-			//INCOMPATIBLE with Win64, fd is IntPtr on windows
+#region *nix
 			[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
-			public delegate void event_callback(int fd, short events, IntPtr arg);
+			public delegate void event_callback_normal(int fd, short events, IntPtr arg);
 
-			//INCOMPATIBLE with Win64, fd is IntPtr on windows
 			[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
-			public delegate EvEvent event_new(EventBase eventBase, int fd, short events, event_callback cb, IntPtr arg);
+			public delegate EvEvent event_new_normal (EventBase eventBase, int fd, short events, event_callback_normal cb, IntPtr arg);
+#endregion
+#region Windows
+			[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
+			public delegate void event_callback_windows(IntPtr fd, short events, IntPtr arg);
+
+			[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
+			public delegate EvEvent event_new_windows(EventBase eventBase, IntPtr fd, short events, event_callback_windows cb, IntPtr arg);
+#endregion
 
 		}
 
@@ -127,7 +134,8 @@ namespace EvHttpSharp.Interop
 		[EvImport] public static D.event_base_loop EventBaseLoop;
 		[EvImport] public static D.event_free EventFree;
 		[EvImport] public static D.event_active EventActive;
-		[EvImport] public static D.event_new EventNew;
+		[EvImport(EvDll.Core, "event_new")] public static D.event_new_windows EventNewWindows;
+		[EvImport(EvDll.Core, "event_new")] public static D.event_new_normal EventNewNix;
 		[EvImport(EvDll.Extra)] public static D.evhttp_free EvHttpFree;
 		[EvImport(EvDll.Extra)] public static D.evhttp_new EvHttpNew;
 		[EvImport(EvDll.Extra)] public static D.evhttp_set_gencb EvHttpSetGenCb;
@@ -142,6 +150,9 @@ namespace EvHttpSharp.Interop
 		[EvImport(EvDll.Extra)] public static D.evhttp_request_get_output_headers EvHttpRequestGetOutputHeaders;
 		[EvImport(EvDll.Extra)] public static D.evhttp_add_header EvHttpAddHeader;
 
+
+		public static readonly bool RunningOnWindows = Path.DirectorySeparatorChar == '\\';
+	
 		public static event Action<int, string> Log; 
 		
 		static void LogCallback(int sev, IntPtr message)
@@ -168,11 +179,12 @@ namespace EvHttpSharp.Interop
 			var extra = loader.LoadLibrary(basePath, "libevent_extra");
 			foreach (var fieldInfo in typeof (Event).GetFields(BindingFlags.Static | BindingFlags.Public))
 			{
-				var import = fieldInfo.GetCustomAttributes (typeof (EvImportAttribute), true).Cast<EvImportAttribute> ().First ();
-				if (import == null)
+				if (!typeof (Delegate).IsAssignableFrom(fieldInfo.FieldType))
 					continue;
+				var import = fieldInfo.GetCustomAttributes (typeof (EvImportAttribute), true).Cast<EvImportAttribute> ().First ();
+				
 				var lib = import.Dll == EvDll.Core ? core : extra;
-				var funcPtr = loader.GetProcAddress(lib, fieldInfo.FieldType.Name);
+				var funcPtr = loader.GetProcAddress(lib, import.Name ?? fieldInfo.FieldType.Name);
 				fieldInfo.SetValue(null, Marshal.GetDelegateForFunctionPointer(funcPtr, fieldInfo.FieldType));
 			}
 

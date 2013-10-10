@@ -16,8 +16,7 @@ namespace EvHttpSharp
 		private EvHttp _evHttp;
 		private Thread _thread;
 		private GCHandle _httpCallbackHandle;
-		private GCHandle _syncCbHandle;
-		private EvEvent _syncCbEvent;
+		private EvUserEvent _syncCbUserEvent;
 		private readonly Queue<Action> _syncCallbacks = new Queue<Action>();
 		private bool _stop;
 
@@ -56,10 +55,9 @@ namespace EvHttpSharp
 			Event.EvHttpSetAllowedMethods (_evHttp, EvHttpCmdType.All);
 			Event.EvHttpSetGenCb (_evHttp, cb, GCHandle.ToIntPtr (_httpCallbackHandle));
 
-			var syncCb = new Event.D.event_callback (SyncCallback);
-			_syncCbHandle = GCHandle.Alloc (syncCb);
-			using (_syncCbEvent = Event.EventNew(_eventBase, -1, 0, syncCb, IntPtr.Zero))
+			using (_syncCbUserEvent = new EvUserEvent(_eventBase))
 			{
+				_syncCbUserEvent.Triggered += SyncCallback;
 				while (!_stop)
 				{
 					Event.EventBaseDispatch(_eventBase);
@@ -68,14 +66,13 @@ namespace EvHttpSharp
 			//We've recieved loopbreak from actual Dispose, so dispose now
 			DoDispose ();
 			_httpCallbackHandle.Free ();
-			_syncCbHandle.Free ();
 		}
 
-		private void SyncCallback(int fd, short events, IntPtr arg)
+		private void SyncCallback(object sender, EventArgs eventArgs)
 		{
 			lock (_syncCallbacks)
 				while (_syncCallbacks.Count != 0)
-					_syncCallbacks.Dequeue () ();
+					_syncCallbacks.Dequeue()();
 		}
 
 		private void RequestHandler(IntPtr request, IntPtr arg)
@@ -88,7 +85,7 @@ namespace EvHttpSharp
 		{
 			lock (_syncCallbacks)
 				_syncCallbacks.Enqueue(cb);
-			Event.EventActive(_syncCbEvent);
+			Event.EventActive(_syncCbUserEvent);
 		}
 
 		private void DoDispose()
