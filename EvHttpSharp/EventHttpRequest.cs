@@ -26,6 +26,8 @@ namespace EvHttpSharp
 			if (pHost != IntPtr.Zero)
 				Host = Marshal.PtrToStringAnsi(pHost);
 			Headers = EvKeyValuePair.ExtractDictinary(Event.EvHttpRequestGetInputHeaders(_handle));
+			if (Headers.ContainsKey("Host"))
+				Host = Headers["Host"].First().Split(':')[0];
 
 			var evBuffer = new EvBuffer(Event.EvHttpRequestGetInputBuffer(_handle), false);
 			if (!evBuffer.IsInvalid)
