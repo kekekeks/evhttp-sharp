@@ -41,6 +41,12 @@ namespace Nancy.Hosting.Event2
 			_listener = null;
 		}
 
+		Request CreateRequest(string method, string path, IDictionary<string, IEnumerable<string>> headers, RequestStream body,
+		                      string scheme, string query = null, string ip = null)
+		{
+			return new Request(method, new Url {Path = path, Scheme = scheme, Query = query ?? String.Empty}, body, headers, ip);
+		}
+
 		private void RequestHandler(EventHttpRequest req)
 		{
 			ThreadPool.QueueUserWorkItem(_ =>
@@ -48,8 +54,8 @@ namespace Nancy.Hosting.Event2
 					var pairs = req.Uri.Split(new[] {'?'}, 2);
 					var path = Uri.UnescapeDataString(pairs[0]);
 					var query = pairs.Length == 2 ? pairs[1] : string.Empty;
-					var nreq = new Request(req.Method, path, req.Headers,
-					                             RequestStream.FromStream(new MemoryStream(req.RequestBody)), "http", query);
+					var nreq = CreateRequest(req.Method, path, req.Headers,
+					                         RequestStream.FromStream(new MemoryStream(req.RequestBody)), "http", query);
 
 					var ctx = _engine.HandleRequest(nreq);
 					PostProcessNancyResponse(nreq, ctx.Response);
