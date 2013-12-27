@@ -18,6 +18,8 @@ namespace Nancy.Hosting.Event2
 		private readonly INancyEngine _engine;
 		private EventHttpListener _listener;
 
+		public event ErrorEventHandler Error;
+
 		public NancyEvent2Host(string host, int port, INancyBootstrapper bootstrapper)
 		{
 			_host = host;
@@ -56,14 +58,25 @@ namespace Nancy.Hosting.Event2
 					var query = pairs.Length == 2 ? pairs[1] : string.Empty;
 					var nreq = CreateRequest(req.Method, path, req.Headers,
 					                         RequestStream.FromStream(new MemoryStream(req.RequestBody)), "http", query);
+					_engine.HandleRequest(
+						nreq,
+						ctx =>
+							{
+								PostProcessNancyResponse(nreq, ctx.Response);
 
-					var ctx = _engine.HandleRequest(nreq);
-					PostProcessNancyResponse(nreq, ctx.Response);
+								var ms = new MemoryStream();
+								ctx.Response.Contents(ms);
+								req.Respond((System.Net.HttpStatusCode) ctx.Response.StatusCode, ctx.Response.Headers, ms.ToArray());
+							},
+						exception =>
+							{
+								req.Respond(System.Net.HttpStatusCode.InternalServerError, new Dictionary<string, string>(), new byte[0]);
+								if (Error != null)
+									Error(this, new ErrorEventArgs(exception));
+								else
+									Console.WriteLine(exception);
 
-					var ms = new MemoryStream();
-					ctx.Response.Contents(ms);
-					req.Respond((System.Net.HttpStatusCode) ctx.Response.StatusCode, ctx.Response.Headers, ms.ToArray());
-
+							});
 				});
 		}
 
