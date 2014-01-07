@@ -44,7 +44,7 @@ namespace EvHttpSharp
 				throw new IOException("Unable to bind to the specified address");
 			}
 
-			_thread = new Thread(MainCycle);
+			_thread = new Thread(MainCycle) {Priority = ThreadPriority.Highest};
 			_thread.Start();
 		}
 
