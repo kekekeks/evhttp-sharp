@@ -53,6 +53,7 @@ namespace Nancy.Hosting.Event2
 		{
 			ThreadPool.QueueUserWorkItem(_ =>
 				{
+					PreProcessRequest(req);
 					var pairs = req.Uri.Split(new[] {'?'}, 2);
 					var path = Uri.UnescapeDataString(pairs[0]);
 					var query = pairs.Length == 2 ? pairs[1] : string.Empty;
@@ -78,6 +79,11 @@ namespace Nancy.Hosting.Event2
 
 							});
 				});
+		}
+
+		protected virtual void PreProcessRequest(EventHttpRequest request)
+		{
+			
 		}
 
 		protected virtual void PostProcessNancyResponse (Request request, Response response)
