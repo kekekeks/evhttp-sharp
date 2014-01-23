@@ -14,6 +14,7 @@ namespace EvHttpSharp
 		public string Uri { get; set; }
 		public string Host { get; set; }
 		public IDictionary<string, IEnumerable<string>> Headers { get; set; }
+		public string UserHostAddress { get; set; }
 		public byte[] RequestBody { get; set; }
 
 		public EventHttpRequest(EventHttpListener listener, IntPtr handle)
@@ -36,6 +37,12 @@ namespace EvHttpSharp
 				RequestBody = new byte[len];
 				Event.EvBufferRemove(evBuffer, RequestBody, new IntPtr(len));
 			}
+
+			var conn = Event.EvHttpRequestGetConnection(_handle);
+			IntPtr pHostString = IntPtr.Zero;
+			ushort port = 0;
+			Event.EvHttpConnectionGetPeer(conn, ref pHostString, ref port);
+			UserHostAddress = Marshal.PtrToStringAnsi(pHostString);
 
 		}
 

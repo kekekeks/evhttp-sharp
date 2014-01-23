@@ -59,6 +59,9 @@ namespace EvHttpSharp.Interop
 			public delegate EvHttpCmdType evhttp_request_get_command(EvHttpRequest request);
 
 			[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
+			public delegate EvHttpConnection evhttp_request_get_connection (EvHttpRequest request);
+
+			[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
 			public delegate IntPtr evhttp_request_get_uri(EvHttpRequest request);
 
 			[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
@@ -69,6 +72,10 @@ namespace EvHttpSharp.Interop
 
 			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 			public delegate IntPtr evhttp_request_get_input_buffer(EvHttpRequest request);
+
+
+			[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+			public delegate void evhttp_connection_get_peer(EvHttpConnection connection, ref IntPtr pHostString, ref ushort port);
 
 			[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
 			public delegate EvBuffer evbuffer_new();
@@ -143,11 +150,13 @@ namespace EvHttpSharp.Interop
 		[EvImport(EvDll.Extra)] public static D.evhttp_send_reply EvHttpSendReply;
 		[EvImport(EvDll.Extra)] public static D.evhttp_set_allowed_methods EvHttpSetAllowedMethods;
 		[EvImport(EvDll.Extra)] public static D.evhttp_request_get_command EvHttpRequestGetCommand;
+		[EvImport(EvDll.Extra)] public static D.evhttp_request_get_connection EvHttpRequestGetConnection;
 		[EvImport(EvDll.Extra)] public static D.evhttp_request_get_uri EvHttpRequestGetUri;
 		[EvImport(EvDll.Extra)] public static D.evhttp_request_get_host EvHttpRequestGetHost;
 		[EvImport(EvDll.Extra)] public static D.evhttp_request_get_input_headers EvHttpRequestGetInputHeaders;
 		[EvImport(EvDll.Extra)] public static D.evhttp_request_get_input_buffer EvHttpRequestGetInputBuffer;
 		[EvImport(EvDll.Extra)] public static D.evhttp_request_get_output_headers EvHttpRequestGetOutputHeaders;
+		[EvImport(EvDll.Extra)] public static D.evhttp_connection_get_peer EvHttpConnectionGetPeer;
 		[EvImport(EvDll.Extra)] public static D.evhttp_add_header EvHttpAddHeader;
 
 
