@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using EvHttpSharp;
 using Xunit;
 
@@ -46,6 +47,40 @@ namespace Tests
 			CheckPortIsStillFree();
 		}
 
+		[Fact]
+		public void ServerShouldStopListening()
+		{
+			using (
+				var server =
+					new EventHttpListener(r => r.Respond(System.Net.HttpStatusCode.OK, new Dictionary<string, string>(), new byte[0])))
+			{
+				server.Start("127.0.0.1", _freePort);
+				server.StopListeningAsync().Wait();
+				CheckPortIsStillFree();
+			}
+		}
+
+		[Fact]
+		public void ServerShouldWaitForPendingRequests ()
+		{
+			using (
+				var server =
+					new EventHttpListener (r => ThreadPool.QueueUserWorkItem(_ =>
+					{
+						Thread.Sleep(1000);
+						r.Respond(HttpStatusCode.OK, new Dictionary<string, string>(), new byte[0]);
+					})))
+			{
+				server.Start ("127.0.0.1", _freePort);
+				
+				new WebClient().DownloadDataAsync(new Uri(_urlBase));
+				Thread.Sleep(100);
+				var task = server.Shutdown();
+				Thread.Sleep(500);
+				Assert.False(task.IsCompleted);
+				Assert.True(task.Wait(4000));
+			}
+		}
 
 	}
 }

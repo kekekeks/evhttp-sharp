@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using EvHttpSharp.Interop;
 
 namespace EvHttpSharp
@@ -19,6 +21,8 @@ namespace EvHttpSharp
 		private EvUserEvent _syncCbUserEvent;
 		private readonly Queue<Action> _syncCallbacks = new Queue<Action>();
 		private bool _stop;
+		private int _pendingRequests;
+		private EvHttpBoundSocket _socket;
 
 		public EventHttpListener(RequestCallback cb)
 		{
@@ -37,8 +41,8 @@ namespace EvHttpSharp
 				Dispose();
 				throw new IOException ("Unable to create evhttp");
 			}
-			var socket = Event.EvHttpBindSocketWithHandle(_evHttp, host, port);
-			if (socket.IsInvalid)
+			_socket = Event.EvHttpBindSocketWithHandle(_evHttp, host, port);
+			if (_socket.IsInvalid)
 			{
 				Dispose();
 				throw new IOException("Unable to bind to the specified address");
@@ -81,6 +85,16 @@ namespace EvHttpSharp
 			_cb (req);
 		}
 
+		internal void DecreaseRequestCounter()
+		{
+			Interlocked.Decrement(ref _pendingRequests);
+		}
+
+		internal void IncreaseRequestCounter()
+		{
+			Interlocked.Increment(ref _pendingRequests);
+		}
+
 		internal void Sync(Action cb)
 		{
 			lock (_syncCallbacks)
@@ -94,6 +108,7 @@ namespace EvHttpSharp
 				_evHttp.Dispose ();
 			if (_eventBase != null && !_eventBase.IsInvalid)
 				_eventBase.Dispose();
+			_pendingRequests = 0;
 		}
 
 		public void Dispose()
@@ -108,6 +123,58 @@ namespace EvHttpSharp
 					_thread.Join ();
 			}
 
+		}
+
+		Task SyncTask(Action cb)
+		{
+			var tcs = new TaskCompletionSource<int> ();
+			Sync(() =>
+			{
+				try
+				{
+					cb();
+					tcs.SetResult(0);
+				}
+				catch (Exception e)
+				{
+					tcs.SetException(e);
+				}
+			});
+			return tcs.Task;
+		}
+
+		public Task StopListeningAsync()
+		{
+			return SyncTask(() =>
+			{
+				if (_socket == null || _socket.IsInvalid)
+					throw new InvalidOperationException("Server isn't listening");
+				Event.EvHttpDelAcceptSocket(_evHttp, _socket);
+				_socket = null;
+			});
+		}
+
+		public Task WaitForPendingConnections()
+		{
+			var tcs = new TaskCompletionSource<int>();
+			Timer timer = null;
+			timer = new Timer(_ =>
+			{
+				if (Thread.VolatileRead(ref _pendingRequests) == 0)
+				{
+					tcs.SetResult(0);
+					// ReSharper disable once PossibleNullReferenceException
+					// ReSharper disable once AccessToModifiedClosure
+					timer.Dispose();
+				}
+			}, null, 0, 100);
+			
+			return tcs.Task;
+		}
+
+		public Task Shutdown()
+		{
+			return StopListeningAsync().ContinueWith(_ => WaitForPendingConnections()).Unwrap();
 		}
 	}
 }

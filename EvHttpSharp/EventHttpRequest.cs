@@ -43,7 +43,7 @@ namespace EvHttpSharp
 			ushort port = 0;
 			Event.EvHttpConnectionGetPeer(conn, ref pHostString, ref port);
 			UserHostAddress = Marshal.PtrToStringAnsi(pHostString);
-
+			_listener.IncreaseRequestCounter();
 		}
 
 
@@ -59,6 +59,7 @@ namespace EvHttpSharp
 				{
 					Event.EvHttpSendReply(_handle, (int) code, code.ToString(), buffer);
 					buffer.Dispose();
+					_listener.DecreaseRequestCounter();
 				});
 		}
 	}

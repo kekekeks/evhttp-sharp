@@ -43,6 +43,9 @@ namespace EvHttpSharp.Interop
 				EvHttp http, [MarshalAs(UnmanagedType.LPStr)] string host, ushort port);
 
 			[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
+			public delegate void evhttp_del_accept_socket(EvHttp evhttp, EvHttpBoundSocket socket);
+
+			[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
 			public delegate void event_base_dispatch(EventBase eventBase);
 
 			[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
@@ -147,6 +150,7 @@ namespace EvHttpSharp.Interop
 		[EvImport(EvDll.Extra)] public static D.evhttp_new EvHttpNew;
 		[EvImport(EvDll.Extra)] public static D.evhttp_set_gencb EvHttpSetGenCb;
 		[EvImport(EvDll.Extra)] public static D.evhttp_bind_socket_with_handle EvHttpBindSocketWithHandle;
+		[EvImport(EvDll.Extra)] public static D.evhttp_del_accept_socket EvHttpDelAcceptSocket;
 		[EvImport(EvDll.Extra)] public static D.evhttp_send_reply EvHttpSendReply;
 		[EvImport(EvDll.Extra)] public static D.evhttp_set_allowed_methods EvHttpSetAllowedMethods;
 		[EvImport(EvDll.Extra)] public static D.evhttp_request_get_command EvHttpRequestGetCommand;

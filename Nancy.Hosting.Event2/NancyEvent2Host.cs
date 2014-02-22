@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using EvHttpSharp;
 using Nancy.Bootstrapper;
 using Nancy.IO;
@@ -35,13 +36,17 @@ namespace Nancy.Hosting.Event2
 			_listener.Start(_host, (ushort) _port);
 		}
 
-		public void Stop()
+		public Task StopAsync()
 		{
 			if (_listener == null)
-				return;
-			_listener.Dispose ();
-			_listener = null;
+			{
+				var tcs = new TaskCompletionSource<int>();
+				tcs.SetResult(0);
+				return tcs.Task;
+			}
+			return _listener.Shutdown().ContinueWith(_ => Dispose());
 		}
+
 
 		Request CreateRequest(string method, string path, IDictionary<string, IEnumerable<string>> headers, RequestStream body,
 		                      string scheme, string query = null, string ip = null)
@@ -93,7 +98,8 @@ namespace Nancy.Hosting.Event2
 
 		public void Dispose()
 		{
-			Stop();
+			_listener.Dispose ();
+			_listener = null;
 		}
 	}
 }
