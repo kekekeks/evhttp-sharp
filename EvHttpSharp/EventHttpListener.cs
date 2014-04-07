@@ -47,12 +47,13 @@ namespace EvHttpSharp
                 Dispose();
                 throw new IOException("Unable to bind to the specified address");
             }
-
-            _thread = new Thread(MainCycle) {Priority = ThreadPriority.Highest};
+            var tcs = new TaskCompletionSource<object>();
+            _thread = new Thread(() => MainCycle(tcs)) {Priority = ThreadPriority.Highest};
             _thread.Start();
+            tcs.Task.Wait();
         }
 
-        private void MainCycle()
+        private void MainCycle(TaskCompletionSource<object> tcs)
         {
             var cb = new Event.D.evhttp_request_callback (RequestHandler);
             _httpCallbackHandle = GCHandle.Alloc (cb);
@@ -61,6 +62,7 @@ namespace EvHttpSharp
 
             using (_syncCbUserEvent = new EvUserEvent(_eventBase))
             {
+                tcs.SetResult(null);
                 _syncCbUserEvent.Triggered += SyncCallback;
                 while (!_stop)
                 {
