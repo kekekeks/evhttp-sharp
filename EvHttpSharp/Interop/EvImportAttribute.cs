@@ -2,22 +2,22 @@
 
 namespace EvHttpSharp.Interop
 {
-	internal class EvImportAttribute : Attribute
-	{
-		public EvDll Dll { get; set; }
-		public string Name { get; set; }
+    internal class EvImportAttribute : Attribute
+    {
+        public EvDll Dll { get; set; }
+        public string Name { get; set; }
 
-		public EvImportAttribute(EvDll dll = EvDll.Core, string name = null)
-		{
-			Dll = dll;
-			Name = name;
-		}
-	}
+        public EvImportAttribute(EvDll dll = EvDll.Core, string name = null)
+        {
+            Dll = dll;
+            Name = name;
+        }
+    }
 
-	internal enum EvDll
-	{
-		Core,
-		Extra,
-		Pthread
-	}
+    internal enum EvDll
+    {
+        Core,
+        Extra,
+        Pthread
+    }
 }

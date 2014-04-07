@@ -8,22 +8,22 @@ using Nancy;
 
 namespace Sandbox
 {
-	public class AsyncModule : NancyModule
-	{
-		public AsyncModule()
-		{
-			Get["async", true] = (args, token) =>
-				{
-					var tcs = new TaskCompletionSource<object>();
+    public class AsyncModule : NancyModule
+    {
+        public AsyncModule()
+        {
+            Get["async", true] = (args, token) =>
+                {
+                    var tcs = new TaskCompletionSource<object>();
 
-					ThreadPool.QueueUserWorkItem(_ =>
-						{
-							Thread.Sleep(100);
-							tcs.SetResult("OK");
-						});
+                    ThreadPool.QueueUserWorkItem(_ =>
+                        {
+                            Thread.Sleep(100);
+                            tcs.SetResult("OK");
+                        });
 
-					return tcs.Task;
-				};
-		}
-	}
+                    return tcs.Task;
+                };
+        }
+    }
 }

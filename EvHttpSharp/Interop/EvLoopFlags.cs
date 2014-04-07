@@ -2,10 +2,10 @@
 
 namespace EvHttpSharp.Interop
 {
-	[Flags]
-	enum EvLoopFlags
-	{
-		Once = 1,
-		NonBlock = 2
-	}
+    [Flags]
+    enum EvLoopFlags
+    {
+        Once = 1,
+        NonBlock = 2
+    }
 }
