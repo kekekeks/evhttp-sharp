@@ -12,7 +12,7 @@ namespace EvHttpSharp.Interop
 
         public EvUserEvent(EventBase evBase)
         {
-            if (Event.RunningOnWindows)
+            if (Platform.RunningOnWindows)
             {
                 var winCb = new Event.D.event_callback_windows(CallbackWin);
                 _winCbHandle = GCHandle.Alloc(winCb);
@@ -46,9 +46,9 @@ namespace EvHttpSharp.Interop
                 _event.Dispose();
         }
 
-        public static implicit operator EvEvent(EvUserEvent ev)
+        public void Activate()
         {
-            return ev._event;
+            Event.EventActive(_event.DangerousGetHandle());
         }
     }
 }

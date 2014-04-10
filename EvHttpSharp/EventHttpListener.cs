@@ -9,7 +9,7 @@ using EvHttpSharp.Interop;
 
 namespace EvHttpSharp
 {
-    public class EventHttpListener : IDisposable
+    public class EventHttpListener : IEventHttpListener
     {
         private readonly RequestCallback _cb;
         public delegate void RequestCallback(EventHttpRequest req);
@@ -125,7 +125,8 @@ namespace EvHttpSharp
         {
             lock (_syncCallbacks)
                 _syncCallbacks.Enqueue(cb);
-            Event.EventActive(_syncCbUserEvent);
+            _syncCbUserEvent.Activate();
+
         }
 
         private void DoDispose()
@@ -193,7 +194,7 @@ namespace EvHttpSharp
                     // ReSharper disable once AccessToModifiedClosure
                     timer.Dispose();
                 }
-            }, null, 0, 100);
+            }, null, new TimeSpan(0, 0, 0, 0, 200), new TimeSpan(0, 0, 0, 0, 200));
             
             return tcs.Task;
         }

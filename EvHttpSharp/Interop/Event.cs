@@ -109,7 +109,7 @@ namespace EvHttpSharp.Interop
             public delegate int event_free (IntPtr ev);
 
             [UnmanagedFunctionPointer (CallingConvention.Cdecl)]
-            public delegate void event_active (EvEvent ev, int res = 0, short ignored = 0);
+            public delegate void event_active (IntPtr ev, int res = 0, short ignored = 0);
 
             [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
             public delegate void evconnlistener_free(IntPtr handle);
