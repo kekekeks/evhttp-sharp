@@ -69,12 +69,10 @@ namespace EvHttpSharp
         public void Start(IntPtr sharedSocket)
         {
             CheckAlreadyListening();
-            using (var listener = Event.EvConnListenerNew(_eventBase, IntPtr.Zero, IntPtr.Zero, 1u << 3, 256, sharedSocket))
-            {
-                var socket = Event.EvHttpBindListener(_evHttp, listener);
-                listener.Disown();
-                Start(socket);
-            }
+            var socket = Event.EvHttpAcceptSocketWithHandle(_evHttp, sharedSocket);
+            if (socket.IsInvalid)
+                throw new IOException("Error calling evhttp_accept_socket_with_handle");
+            Start(socket);
         }
 
         private void MainCycle(TaskCompletionSource<object> tcs)
