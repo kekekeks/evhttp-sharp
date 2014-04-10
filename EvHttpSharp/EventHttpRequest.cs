@@ -27,8 +27,9 @@ namespace EvHttpSharp
             if (pHost != IntPtr.Zero)
                 Host = Marshal.PtrToStringAnsi(pHost);
             Headers = EvKeyValuePair.ExtractDictinary(Event.EvHttpRequestGetInputHeaders(_handle));
-            if (Headers.ContainsKey("Host"))
-                Host = Headers["Host"].First().Split(':')[0];
+            IEnumerable<string> host;
+            if (Headers.TryGetValue("Host", out host))
+                Host = host.First().Split(':')[0];
 
             var evBuffer = new EvBuffer(Event.EvHttpRequestGetInputBuffer(_handle), false);
             if (!evBuffer.IsInvalid)
@@ -52,7 +53,7 @@ namespace EvHttpSharp
             var pHeaders = Event.EvHttpRequestGetOutputHeaders(_handle);
             foreach (var header in headers.Where(h => h.Key != "Content-Length"))
                 Event.EvHttpAddHeader(pHeaders, header.Key, header.Value);
-            Event.EvHttpAddHeader(pHeaders, "Content-Length", CalculateLength(body).ToString());
+            Event.EvHttpAddHeader(pHeaders, "Content-Length", body.Sum(chunk => chunk.Count).ToString());
             var buffer = Event.EvBufferNew();
             foreach (var chunk in body)
             {
@@ -78,14 +79,5 @@ namespace EvHttpSharp
             Respond(code, headers, new[] {new ArraySegment<byte>(body, 0, body.Length)});
         }
 
-        private static int CalculateLength(ArraySegment<byte>[] body)
-        {
-            int total = 0;
-            foreach (var chunk in body)
-            {
-                total += chunk.Count;
-            }
-            return total;
-        }
     }
 }
