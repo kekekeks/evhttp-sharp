@@ -9,6 +9,18 @@ namespace EvHttpSharp.Interop
     static class Event
     {
         // ReSharper disable InconsistentNaming    
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct sockaddr_in
+        {
+            internal short sin_family;
+            internal ushort sin_port;
+            internal int sin_addr;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
+            internal byte[] sin_zero;
+        }
+
+        public const int AF_INET = 2;
+
         public static class D
         {
             [UnmanagedFunctionPointer (CallingConvention.Cdecl)]
@@ -117,6 +129,9 @@ namespace EvHttpSharp.Interop
             [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
             public delegate EvHttpBoundSocket evhttp_bind_listener(EvHttp http, EvConnListener listener);
 
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            public delegate EvConnListener evconnlistener_new_bind(
+                EventBase evBase, IntPtr cb, IntPtr ptr, uint flags, int backlog, ref sockaddr_in sockaddr, int socklen);
 #region *nix
             [UnmanagedFunctionPointer (CallingConvention.Cdecl)]
             public delegate void event_callback_normal(int fd, short events, IntPtr arg);
@@ -173,6 +188,7 @@ namespace EvHttpSharp.Interop
         [EvImport] public static D.event_free EventFree;
         [EvImport] public static D.event_active EventActive;
         [EvImport] public static D.evconnlistener_free EvConnListenerFree;
+        [EvImport] public static D.evconnlistener_new_bind EvConnListenerNewBind;
         [EvImport(EvDll.Core, "event_new")] public static D.event_new_windows EventNewWindows;
         [EvImport(EvDll.Core, "event_new")] public static D.event_new_normal EventNewNix;
         [EvImport (EvDll.Core, "evconnlistener_get_fd")] public static D.evconnlistener_get_fd_windows EvConnListenerGetFdWindows;
@@ -202,19 +218,19 @@ namespace EvHttpSharp.Interop
 
         public static EvHttpBoundSocket EvHttpAcceptSocketWithHandle(EvHttp http, IntPtr fd)
         {
-            return RunningOnWindows ? EvHttpAcceptSocketWithHandleWindows(http, fd) : EvHttpAcceptSocketWithHandleNix(http, fd.ToInt32());
+            return Platform.RunningOnWindows ? EvHttpAcceptSocketWithHandleWindows(http, fd) : EvHttpAcceptSocketWithHandleNix(http, fd.ToInt32());
         }
 
         public static EvConnListener EvConnListenerNew(EventBase evBase, IntPtr cb, IntPtr ptr, uint flags, int backlog, IntPtr fd)
         {
-            return RunningOnWindows
+            return Platform.RunningOnWindows
                        ? EvConnListenerNewWindows(evBase, cb, ptr, flags, backlog, fd)
 
                        : EvConnListenerNewNix(evBase, cb, ptr, flags, backlog, fd.ToInt32());
 
         }
 
-        public static readonly bool RunningOnWindows = Path.DirectorySeparatorChar == '\\';
+        
     
         public static event Action<int, string> Log; 
         

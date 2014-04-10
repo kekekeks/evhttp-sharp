@@ -36,7 +36,7 @@ namespace EvHttpSharp.Interop
         {
             get
             {
-                return Event.RunningOnWindows
+                return Platform.RunningOnWindows
                     ? Event.EvConnListenerGetFdWindows(this)
                     : new IntPtr(Event.EvConnListenerGetFdNix(this));
             }

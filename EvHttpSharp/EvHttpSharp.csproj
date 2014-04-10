@@ -40,7 +40,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EventHttpListener.cs" />
+    <Compile Include="EventHttpMultiworkerListener.cs" />
     <Compile Include="EventHttpRequest.cs" />
+    <Compile Include="IEventHttpListener.cs" />
     <Compile Include="Interop\EvBuffer.cs" />
     <Compile Include="Interop\EvConnListener.cs" />
     <Compile Include="Interop\Event.cs" />
@@ -57,6 +59,7 @@
     <Compile Include="Interop\EvLoopFlags.cs" />
     <Compile Include="Interop\IDynLoader.cs" />
     <Compile Include="Interop\LinuxLoader.cs" />
+    <Compile Include="Interop\Platform.cs" />
     <Compile Include="Interop\Win32Loader.cs" />
     <Compile Include="LibLocator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
