@@ -46,21 +46,41 @@ namespace EvHttpSharp
 			_listener.IncreaseRequestCounter();
 		}
 
-
-		public void Respond(System.Net.HttpStatusCode code, IDictionary<string, string> headers, byte[] body)
+		public void Respond(System.Net.HttpStatusCode code, IDictionary<string, string> headers, ArraySegment<byte>[] body)
 		{
 			var pHeaders = Event.EvHttpRequestGetOutputHeaders(_handle);
 			foreach (var header in headers.Where(h => h.Key != "Content-Length"))
 				Event.EvHttpAddHeader(pHeaders, header.Key, header.Value);
-			Event.EvHttpAddHeader(pHeaders, "Content-Length", body.Length.ToString());
+			Event.EvHttpAddHeader(pHeaders, "Content-Length", CalculateLength(body).ToString());
 			var buffer = Event.EvBufferNew();
-			Event.EvBufferAdd(buffer, body, new IntPtr(body.Length));
+			foreach(var chunk in body) {
+			    Event.EvBufferAdd(buffer, chunk.Array, new IntPtr(chunk.Count));
+			}
 			_listener.Sync(() =>
 				{
 					Event.EvHttpSendReply(_handle, (int) code, code.ToString(), buffer);
 					buffer.Dispose();
 					_listener.DecreaseRequestCounter();
 				});
+		}
+
+
+		public void Respond(System.Net.HttpStatusCode code, IDictionary<string, string> headers, IEnumerable<ArraySegment<byte>> body)
+		{
+			Respond(code, headers, body.ToArray());
+		}
+
+		public void Respond(System.Net.HttpStatusCode code, IDictionary<string, string> headers, byte[] body)
+		{
+			Respond(code, headers, new [] {new ArraySegment<byte>(body, 0, body.Length)});
+		}
+
+		private static int CalculateLength(ArraySegment<byte> [] body) {
+			int total = 0;
+			foreach(var chunk in body) {
+				total += chunk.Count;
+			}
+			return total;
 		}
 	}
 }
