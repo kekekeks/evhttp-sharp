@@ -14,8 +14,8 @@ namespace EvHttpSharp
         private readonly RequestCallback _cb;
         public delegate void RequestCallback(EventHttpRequest req);
 
-        private EventBase _eventBase;
-        private EvHttp _evHttp;
+        private readonly EventBase _eventBase;
+        private readonly EvHttp _evHttp;
         private Thread _thread;
         private GCHandle _httpCallbackHandle;
         private EvUserEvent _syncCbUserEvent;
@@ -28,10 +28,6 @@ namespace EvHttpSharp
         {
             LibLocator.TryToLoadDefaultIfNotInitialized();
             _cb = cb;
-        }
-
-        public void Start(string host, ushort port)
-        {
             _eventBase = Event.EventBaseNew();
             if (_eventBase.IsInvalid)
                 throw new IOException("Unable to create event_base");
@@ -39,18 +35,46 @@ namespace EvHttpSharp
             if (_evHttp.IsInvalid)
             {
                 Dispose();
-                throw new IOException ("Unable to create evhttp");
+                throw new IOException("Unable to create evhttp");
             }
-            _socket = Event.EvHttpBindSocketWithHandle(_evHttp, host, port);
+        }
+
+        void CheckAlreadyListening()
+        {
+            if (_socket != null && !_socket.IsInvalid)
+                throw new InvalidOperationException();
+        }
+
+        void Start(EvHttpBoundSocket boundSocket)
+        {
+            _socket = boundSocket;
             if (_socket.IsInvalid)
             {
                 Dispose();
                 throw new IOException("Unable to bind to the specified address");
             }
+
             var tcs = new TaskCompletionSource<object>();
-            _thread = new Thread(() => MainCycle(tcs)) {Priority = ThreadPriority.Highest};
+            _thread = new Thread(() => MainCycle(tcs)) { Priority = ThreadPriority.Highest };
             _thread.Start();
             tcs.Task.Wait();
+        }
+
+        public void Start(string host, ushort port)
+        {
+            CheckAlreadyListening();
+            Start(Event.EvHttpBindSocketWithHandle(_evHttp, host, port));
+        }
+
+        public void Start(IntPtr sharedSocket)
+        {
+            CheckAlreadyListening();
+            using (var listener = Event.EvConnListenerNew(_eventBase, IntPtr.Zero, IntPtr.Zero, 1u << 3, 256, sharedSocket))
+            {
+                var socket = Event.EvHttpBindListener(_evHttp, listener);
+                listener.Disown();
+                Start(socket);
+            }
         }
 
         private void MainCycle(TaskCompletionSource<object> tcs)

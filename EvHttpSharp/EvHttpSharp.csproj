@@ -42,6 +42,7 @@
     <Compile Include="EventHttpListener.cs" />
     <Compile Include="EventHttpRequest.cs" />
     <Compile Include="Interop\EvBuffer.cs" />
+    <Compile Include="Interop\EvConnListener.cs" />
     <Compile Include="Interop\Event.cs" />
     <Compile Include="Interop\EventBase.cs" />
     <Compile Include="Interop\EvHttpConnection.cs" />
