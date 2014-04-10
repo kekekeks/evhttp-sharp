@@ -56,13 +56,15 @@ namespace EvHttpSharp
         private static readonly Dictionary<HttpStatusCode, string> StatusCodes = Enum.GetValues(typeof (HttpStatusCode))
             .Cast<HttpStatusCode>().Distinct().ToDictionary(x => x, x => x.ToString());
 
-        public void Respond(System.Net.HttpStatusCode code, IDictionary<string, string> headers,
+        public void Respond(HttpStatusCode code, IDictionary<string, string> headers,
             ArraySegment<byte>[] body)
         {
             var pHeaders = Event.EvHttpRequestGetOutputHeaders(_handle);
-            foreach (var header in headers.Where(h => h.Key != "Content-Length"))
-                Event.EvHttpAddHeader(pHeaders, header.Key, header.Value);
-            Event.EvHttpAddHeader(pHeaders, "Content-Length", body.Sum(chunk => chunk.Count).ToString());
+            foreach (var header in headers)
+                if (header.Key != "Content-Length")
+                    Event.EvHttpAddHeader(pHeaders, header.Key, header.Value);
+
+            Event.EvHttpAddHeader(pHeaders, "Content-Length", CalculateLength(body).ToString());
             var buffer = Event.EvBufferNew();
             foreach (var chunk in body)
             {
@@ -80,15 +82,25 @@ namespace EvHttpSharp
         }
 
 
-        public void Respond(System.Net.HttpStatusCode code, IDictionary<string, string> headers,
+        public void Respond(HttpStatusCode code, IDictionary<string, string> headers,
             IEnumerable<ArraySegment<byte>> body)
         {
             Respond(code, headers, body.ToArray());
         }
 
-        public void Respond(System.Net.HttpStatusCode code, IDictionary<string, string> headers, byte[] body)
+        public void Respond(HttpStatusCode code, IDictionary<string, string> headers, byte[] body)
         {
             Respond(code, headers, new[] {new ArraySegment<byte>(body, 0, body.Length)});
+        }
+
+// ReSharper disable once ParameterTypeCanBeEnumerable.Local
+        private static int CalculateLength(ArraySegment<byte>[] body)
+        {
+            var total = 0;
+// ReSharper disable once LoopCanBeConvertedToQuery
+            foreach (var s in body)
+                total += s.Count;
+            return total;
         }
 
     }
