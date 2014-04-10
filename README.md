@@ -18,3 +18,14 @@ EventHttpListener example:
     }).Start("127.0.0.1", (ushort) 8081); 
 ```
 
+
+Native binaries
+---------------
+
+### Windows
+
+Precompiled binaries are in this repository, Visual Studio should copy them to build target location.
+
+### Linux
+
+It needs libevent_core, libevent_extra, libevent_pthreads installed in your system (or just use LibLocator.Init with path to binaries). In Debian-based distros you can install them using `apt-get install libevent-core-2.0-5 libevent-extra-2.0-5 libevent-core-2.0-5`
