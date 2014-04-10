@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using EvHttpSharp.Interop;
 
@@ -47,6 +48,9 @@ namespace EvHttpSharp
             _listener.IncreaseRequestCounter();
         }
 
+        private static readonly Dictionary<HttpStatusCode, string> StatusCodes = Enum.GetValues(typeof (HttpStatusCode))
+            .Cast<HttpStatusCode>().Distinct().ToDictionary(x => x, x => x.ToString());
+
         public void Respond(System.Net.HttpStatusCode code, IDictionary<string, string> headers,
             ArraySegment<byte>[] body)
         {
@@ -59,9 +63,12 @@ namespace EvHttpSharp
             {
                 Event.EvBufferAdd(buffer, chunk.Array, new IntPtr(chunk.Count));
             }
+            string codeName;
+            if (!StatusCodes.TryGetValue(code, out codeName))
+                codeName = code.ToString();
             _listener.Sync(() =>
-                {
-                    Event.EvHttpSendReply(_handle, (int) code, code.ToString(), buffer);
+            {
+                Event.EvHttpSendReply(_handle, (int) code, codeName, buffer);
                     buffer.Dispose();
                     _listener.DecreaseRequestCounter();
                 });
