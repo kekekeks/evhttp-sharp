@@ -18,11 +18,16 @@ namespace EvHttpSharp
         public string UserHostAddress { get; set; }
         public byte[] RequestBody { get; set; }
 
+        private static readonly Dictionary<EvHttpCmdType, string> Commands = Enum.GetValues(typeof (EvHttpCmdType))
+            .Cast<EvHttpCmdType>()
+            .Distinct()
+            .ToDictionary(x => x, x => x.ToString().ToUpper());
+
         public EventHttpRequest(EventHttpListener listener, IntPtr handle)
         {
             _listener = listener;
             _handle = new EvHttpRequest(handle);
-            Method = Event.EvHttpRequestGetCommand(_handle).ToString().ToUpper();
+            Method = Commands[Event.EvHttpRequestGetCommand(_handle)];
             Uri = Marshal.PtrToStringAnsi(Event.EvHttpRequestGetUri(_handle));
             var pHost = Event.EvHttpRequestGetHost(_handle);
             if (pHost != IntPtr.Zero)
