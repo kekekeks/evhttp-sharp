@@ -12,9 +12,10 @@ To use NancyFx host: `new Nancy.Hosting.Event2.NancyEvent2Host("127.0.0.1", 8081
 
 EventHttpListener example:
 ```csharp
+
     new EventHttpListener(req => 
     {
-        req.Respond (HttpStatusCodes.OK, new Dictionary<string, string> { {"Content-Type", "text/plain" }}, new MemoryStream (Encoding.UTF8.GetBytes("Hello world"));
+        req.Respond (HttpStatusCodes.OK, new Dictionary<string, string> { {"Content-Type", "text/plain" }}, Encoding.UTF8.GetBytes("Hello world"));
     }).Start("127.0.0.1", (ushort) 8081); 
 ```
 
