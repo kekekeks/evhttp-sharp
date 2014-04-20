@@ -62,7 +62,8 @@ namespace EvHttpSharp
             var pHeaders = Event.EvHttpRequestGetOutputHeaders(_handle);
             foreach (var header in headers)
                 if (header.Key != "Content-Length")
-                    Event.EvHttpAddHeader(pHeaders, header.Key, header.Value);
+                    if (header.Value != null)
+                        Event.EvHttpAddHeader(pHeaders, header.Key, header.Value);
 
             Event.EvHttpAddHeader(pHeaders, "Content-Length", CalculateLength(body).ToString());
             var buffer = Event.EvBufferNew();
