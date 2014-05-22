@@ -102,6 +102,7 @@ namespace Nancy.Hosting.Event2
         protected virtual void PostProcessNancyResponse (Request request, Response response)
         {
             response.Headers["Content-Type"] = response.ContentType;
+            response.Headers["Set-Cookie"] = string.Join("\r\n", response.Cookies.Select(cookie => cookie.ToString()));
         }
 
         public void Dispose()
