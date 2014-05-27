@@ -75,24 +75,63 @@ namespace Nancy.Hosting.Event2
                     _engine.HandleRequest(
                         nreq,
                         ctx =>
+                        {
+                            ResponseData resp;
+                            try
                             {
-                                PostProcessNancyResponse(nreq, ctx.Response);
-
                                 var ms = new MemoryStream();
+                                PostProcessNancyResponse(nreq, ctx.Response);
                                 ctx.Response.Contents(ms);
-                                req.Respond((System.Net.HttpStatusCode) ctx.Response.StatusCode, ctx.Response.Headers, ms.ToArray());
-                            },
-                        exception =>
-                            {
-                                req.Respond(System.Net.HttpStatusCode.InternalServerError, new Dictionary<string, string>(), new byte[0]);
-                                if (Error != null)
-                                    Error(this, new ErrorEventArgs(exception));
-                                else
-                                    Console.WriteLine(exception);
+                                resp = new ResponseData(ctx.Response.StatusCode, ms.ToArray(), ctx.Response.Headers);
 
-                            });
+                            }
+                            catch (Exception e)
+                            {
+                                resp = OnException(e);
+                            }
+                            DoRespond(req, resp);
+                        },
+                        exception => DoRespond(req, OnException(exception)));
                 });
         }
+
+        void DoRespond(EventHttpRequest req, ResponseData resp)
+        {
+            req.Respond((System.Net.HttpStatusCode) resp.Code, resp.Headers ?? new Dictionary<string, string>(),
+                resp.Data ?? new byte[0]);
+        }
+
+
+        public class ResponseData
+        {
+            public ResponseData(HttpStatusCode code, byte[] data, IDictionary<string, string> headers)
+            {
+                Headers = headers;
+                Data = data;
+                Code = code;
+            }
+
+            public HttpStatusCode Code { get; private set; }
+            public IDictionary<string, string> Headers { get; private set; }
+            public byte[] Data { get; private set; }
+
+        }
+
+        protected virtual ResponseData GetExceptionResponse(Exception e)
+        {
+            
+            if (Error != null)
+                Error(this, new ErrorEventArgs(e));
+            else
+                Console.WriteLine(e);
+            return new ResponseData(HttpStatusCode.InternalServerError, Encoding.UTF8.GetBytes(e.ToString()),
+                new Dictionary<string, string>
+                {
+                    {"Content-Type", "text/plain; charset=utf-8"}
+                });
+        }
+
+
 
         protected virtual void PreProcessRequest(EventHttpRequest request)
         {
