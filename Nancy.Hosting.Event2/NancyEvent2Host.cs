@@ -64,6 +64,11 @@ namespace Nancy.Hosting.Event2
 
         private void RequestHandler(EventHttpRequest req)
         {
+            if (req.Uri == null)
+            {
+                req.Respond(System.Net.HttpStatusCode.BadRequest, new Dictionary<string, string>(), new byte[0]);
+                return;
+            }
             ThreadPool.QueueUserWorkItem(_ =>
                 {
                     PreProcessRequest(req);
@@ -74,8 +79,6 @@ namespace Nancy.Hosting.Event2
                                              RequestStream.FromStream(new MemoryStream(req.RequestBody)), "http", query, req.UserHostAddress);
                     try
                     {
-
-
                         _engine.HandleRequest(
                             nreq,
                             ctx =>
