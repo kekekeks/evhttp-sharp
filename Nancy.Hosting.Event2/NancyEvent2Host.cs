@@ -71,12 +71,22 @@ namespace Nancy.Hosting.Event2
             }
             ThreadPool.QueueUserWorkItem(_ =>
             {
-                PreProcessRequest(req);
-                var pairs = req.Uri.Split(new[] {'?'}, 2);
-                var path = Uri.UnescapeDataString(pairs[0]);
-                var query = pairs.Length == 2 ? pairs[1] : string.Empty;
-                var nreq = CreateRequest(req.Method, path, req.Headers,
-                    RequestStream.FromStream(new MemoryStream(req.RequestBody)), "http", query, req.UserHostAddress);
+                Request nreq;
+                try
+                {
+                    PreProcessRequest(req);
+                    var pairs = req.Uri.Split(new[] {'?'}, 2);
+                    var path = Uri.UnescapeDataString(pairs[0]);
+                    var query = pairs.Length == 2 ? pairs[1] : string.Empty;
+
+                    nreq = CreateRequest(req.Method, path, req.Headers,
+                        RequestStream.FromStream(new MemoryStream(req.RequestBody)), "http", query, req.UserHostAddress);
+                }
+                catch(Exception e)
+                {
+                    DoRespond(req, GetExceptionResponse(e));
+                    return;
+                }
                 try
                 {
                     _engine.HandleRequest(
