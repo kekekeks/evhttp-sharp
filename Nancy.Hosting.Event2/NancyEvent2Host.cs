@@ -70,41 +70,41 @@ namespace Nancy.Hosting.Event2
                 return;
             }
             ThreadPool.QueueUserWorkItem(_ =>
+            {
+                PreProcessRequest(req);
+                var pairs = req.Uri.Split(new[] {'?'}, 2);
+                var path = Uri.UnescapeDataString(pairs[0]);
+                var query = pairs.Length == 2 ? pairs[1] : string.Empty;
+                var nreq = CreateRequest(req.Method, path, req.Headers,
+                    RequestStream.FromStream(new MemoryStream(req.RequestBody)), "http", query, req.UserHostAddress);
+                try
                 {
-                    PreProcessRequest(req);
-                    var pairs = req.Uri.Split(new[] {'?'}, 2);
-                    var path = Uri.UnescapeDataString(pairs[0]);
-                    var query = pairs.Length == 2 ? pairs[1] : string.Empty;
-                    var nreq = CreateRequest(req.Method, path, req.Headers,
-                                             RequestStream.FromStream(new MemoryStream(req.RequestBody)), "http", query, req.UserHostAddress);
-                    try
-                    {
-                        _engine.HandleRequest(
-                            nreq,
-                            ctx =>
+                    _engine.HandleRequest(
+                        nreq,
+                        ctx =>
+                        {
+                            ResponseData resp;
+                            try
                             {
-                                ResponseData resp;
-                                try
-                                {
-                                    var ms = new MemoryStream();
-                                    PostProcessNancyResponse(nreq, ctx.Response);
-                                    ctx.Response.Contents(ms);
-                                    resp = new ResponseData(ctx.Response.StatusCode, ms.ToArray(), ctx.Response.Headers);
+                                var ms = new MemoryStream();
+                                PostProcessNancyResponse(nreq, ctx.Response);
+                                ctx.Response.Contents(ms);
+                                resp = new ResponseData(ctx.Response.StatusCode, ms.ToArray(), ctx.Response.Headers);
 
-                                }
-                                catch (Exception e)
-                                {
-                                    resp = GetExceptionResponse(e);
-                                }
-                                DoRespond(req, resp);
-                            },
-                            exception => DoRespond(req, GetExceptionResponse(exception)));
-                    }
-                    catch (Exception e)
-                    {
-                        DoRespond(req, GetExceptionResponse(e));
-                    }
-                });
+                            }
+                            catch (Exception e)
+                            {
+                                resp = GetExceptionResponse(e);
+                            }
+                            DoRespond(req, resp);
+                        },
+                        exception => DoRespond(req, GetExceptionResponse(exception)));
+                }
+                catch (Exception e)
+                {
+                    DoRespond(req, GetExceptionResponse(e));
+                }
+            });
         }
 
         void DoRespond(EventHttpRequest req, ResponseData resp)
