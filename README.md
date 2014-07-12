@@ -15,7 +15,7 @@ EventHttpListener example:
 
     new EventHttpListener(req => 
     {
-        req.Respond (HttpStatusCodes.OK, new Dictionary<string, string> { {"Content-Type", "text/plain" }}, Encoding.UTF8.GetBytes("Hello world"));
+        req.Respond (HttpStatusCode.OK, new Dictionary<string, string> { {"Content-Type", "text/plain" }}, Encoding.UTF8.GetBytes("Hello world"));
     }).Start("127.0.0.1", (ushort) 8081); 
 ```
 
