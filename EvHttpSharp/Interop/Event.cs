@@ -248,11 +248,27 @@ namespace EvHttpSharp.Interop
 
         public static void Init (string basePath = null)
         {
-            var windows = Path.DirectorySeparatorChar == '\\';
-            if (windows)
-                WSAStartup(514, new byte[512]);
+            var platform = Environment.OSVersion.Platform;
 
-            var loader = windows ? (IDynLoader) new Win32Loader() : new LinuxLoader();
+            if (platform == PlatformID.Unix && File.Exists("/usr/lib/libSystem.dylib"))
+                platform = PlatformID.MacOSX;
+
+            IDynLoader loader;
+            switch (platform)
+            {
+                case PlatformID.Win32NT:
+                    WSAStartup(514, new byte[512]);
+                    loader = new Win32Loader();
+                    break;
+                case PlatformID.Unix:
+                    loader = new LinuxLoader();
+                    break;
+                case PlatformID.MacOSX:
+                    loader = new OsxLoader();
+                    break;
+                default:
+                    throw new NotSupportedException("Platform " + platform + " is not supported.");
+            }
 
             var core = loader.LoadLibrary(basePath, "libevent_core");
             var extra = loader.LoadLibrary(basePath, "libevent_extra");
@@ -268,7 +284,7 @@ namespace EvHttpSharp.Interop
             }
 
             EventSetLogCallback(LogCallback);
-            var selectorPtr = windows
+            var selectorPtr = platform == PlatformID.Win32NT
                                   ? loader.GetProcAddress(core, "evthread_use_windows_threads")
                                   : loader.GetProcAddress(loader.LoadLibrary(basePath, "libevent_pthreads"), "evthread_use_pthreads");
             ((D.thread_model_selector) Marshal.GetDelegateForFunctionPointer(selectorPtr, typeof (D.thread_model_selector)))();
