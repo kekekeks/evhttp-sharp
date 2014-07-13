@@ -61,6 +61,7 @@
     <Compile Include="Interop\EvLoopFlags.cs" />
     <Compile Include="Interop\IDynLoader.cs" />
     <Compile Include="Interop\LinuxLoader.cs" />
+    <Compile Include="Interop\OsxLoader.cs" />
     <Compile Include="Interop\Platform.cs" />
     <Compile Include="Interop\Win32Loader.cs" />
     <Compile Include="LibLocator.cs" />
