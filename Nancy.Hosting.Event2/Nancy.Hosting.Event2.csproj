@@ -42,6 +42,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="NancyEvent2Host.cs" />
+    <Compile Include="Pool.cs" />
+    <Compile Include="PoolScheduler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
