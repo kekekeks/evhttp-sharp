@@ -4,8 +4,10 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
+using System.Web.Http;
 using EvHttpSharp;
 using Nancy;
+using Owin;
 using HttpStatusCode = System.Net.HttpStatusCode;
 
 namespace Sandbox
@@ -16,6 +18,7 @@ namespace Sandbox
         {
             LibLocator.Init();
             var rawMode = args.Contains("raw");
+            var owin = args.Contains("--owin");
             const string workerPrefix = "--workers=";
             var workers =
                 args.Where(a => a.StartsWith(workerPrefix))
@@ -33,10 +36,20 @@ namespace Sandbox
                     workers).Start(
                         args[0], ushort.Parse(args[1]));
             }
-            else
+            else if (owin)
+            {
+                EvHttpSharp.OwinHost.EvOwinHost.Start(args[0], int.Parse(args[1]), builder =>
+                {
+                    var config = new HttpConfiguration();
+
+                    builder.UseWebApi(config);
+                    config.MapHttpAttributeRoutes();
+                });
+            }
+            else 
             {
                 var host = new Nancy.Hosting.Event2.NancyEvent2Host(args[0], int.Parse(args[1]),
-                    new DefaultNancyBootstrapper(), workers);
+                    new DefaultNancyBootstrapper(), workers, 1);
                 host.Start();
             }
         }
