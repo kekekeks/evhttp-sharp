@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EvOwinFactory.cs" />
     <Compile Include="EvOwinHost.cs" />
     <Compile Include="EvOwinListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
