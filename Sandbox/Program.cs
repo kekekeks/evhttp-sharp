@@ -49,7 +49,7 @@ namespace Sandbox
             else 
             {
                 var host = new Nancy.Hosting.Event2.NancyEvent2Host(args[0], int.Parse(args[1]),
-                    new DefaultNancyBootstrapper(), workers, 1);
+                    new DefaultNancyBootstrapper(), workers);
                 host.Start();
             }
         }

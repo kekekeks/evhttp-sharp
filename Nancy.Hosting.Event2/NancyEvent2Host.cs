@@ -18,25 +18,20 @@ namespace Nancy.Hosting.Event2
         private readonly int _workers;
         private readonly INancyEngine _engine;
         private IEventHttpListener _listener;
-        private readonly TaskFactory _taskFactory;
-        
+
         public event ErrorEventHandler Error;
 
-        public NancyEvent2Host(string host, int port, INancyBootstrapper bootstrapper, int httpWorkers, int? requestWorkers = null)
+        public NancyEvent2Host(string host, int port, INancyBootstrapper bootstrapper, int workers)
         {
             _host = host;
             _port = port;
-            _workers = httpWorkers;
-
-            _taskFactory = requestWorkers.HasValue
-                ? new TaskFactory(new PoolScheduler(new Pool(requestWorkers.Value, requestWorkers.Value/8 + 1)))
-                : Task.Factory;
+            _workers = workers;
 
             bootstrapper.Initialise();
             _engine = bootstrapper.GetEngine();
         }
 
-        public NancyEvent2Host(string host, int port, INancyBootstrapper bootstrapper):this(host, port, bootstrapper, 1, 64)
+        public NancyEvent2Host(string host, int port, INancyBootstrapper bootstrapper):this(host, port, bootstrapper, 1)
         {
             
         }
@@ -74,8 +69,7 @@ namespace Nancy.Hosting.Event2
                 req.Respond(System.Net.HttpStatusCode.BadRequest, new Dictionary<string, string>(), new byte[0]);
                 return;
             }
-
-            _taskFactory.StartNew(() =>
+            ThreadPool.QueueUserWorkItem(_ =>
             {
                 Request nreq;
                 try
@@ -88,7 +82,7 @@ namespace Nancy.Hosting.Event2
                     nreq = CreateRequest(req.Method, path, req.Headers,
                         RequestStream.FromStream(new MemoryStream(req.RequestBody)), "http", query, req.UserHostAddress);
                 }
-                catch (Exception e)
+                catch(Exception e)
                 {
                     DoRespond(req, GetExceptionResponse(e));
                     return;
@@ -120,7 +114,7 @@ namespace Nancy.Hosting.Event2
                 {
                     DoRespond(req, GetExceptionResponse(e));
                 }
-            }).ContinueWith(_ => { }, TaskContinuationOptions.ExecuteSynchronously);
+            });
         }
 
         void DoRespond(EventHttpRequest req, ResponseData resp)
