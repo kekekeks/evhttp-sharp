@@ -70,11 +70,11 @@ namespace Nancy.Hosting.Event2
                             act = null;
                             if (_numTotal > _minimum && !firstWait)
                                 break;
-                        }
 
-                        var timeout = firstWait ? 100 : -1;
-                        _event.WaitOne(timeout);
-                        firstWait = false;
+                            var timeout = firstWait ? 100 : -1;
+                            _event.WaitOne(timeout);
+                            firstWait = false;
+                        }
                     }
                     Interlocked.Decrement(ref _numFree);
                 }
