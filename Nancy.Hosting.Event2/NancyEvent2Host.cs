@@ -56,10 +56,10 @@ namespace Nancy.Hosting.Event2
         }
 
 
-        Request CreateRequest(string method, string path, IDictionary<string, IEnumerable<string>> headers, RequestStream body,
+        Request CreateRequest(string method, string host, string path, IDictionary<string, IEnumerable<string>> headers, RequestStream body,
                               string scheme, string query = null, string ip = null)
         {
-            return new Request(method, new Url {Path = path, Scheme = scheme, Query = query ?? String.Empty}, body, headers, ip);
+            return new Request(method, new Url {Path = path, Scheme = scheme, HostName = host, Query = query ?? String.Empty}, body, headers, ip);
         }
 
         private void RequestHandler(EventHttpRequest req)
@@ -79,7 +79,7 @@ namespace Nancy.Hosting.Event2
                     var path = Uri.UnescapeDataString(pairs[0]);
                     var query = pairs.Length == 2 ? pairs[1] : string.Empty;
 
-                    nreq = CreateRequest(req.Method, path, req.Headers,
+                    nreq = CreateRequest(req.Method, path, req.Host, req.Headers,
                         RequestStream.FromStream(new MemoryStream(req.RequestBody)), "http", query, req.UserHostAddress);
                 }
                 catch(Exception e)
