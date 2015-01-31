@@ -79,7 +79,7 @@ namespace Nancy.Hosting.Event2
                     var path = Uri.UnescapeDataString(pairs[0]);
                     var query = pairs.Length == 2 ? pairs[1] : string.Empty;
 
-                    nreq = CreateRequest(req.Method, path, req.Host, req.Headers,
+                    nreq = CreateRequest(req.Method, req.Host, path, req.Headers,
                         RequestStream.FromStream(new MemoryStream(req.RequestBody)), "http", query, req.UserHostAddress);
                 }
                 catch(Exception e)
