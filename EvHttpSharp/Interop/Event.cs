@@ -232,8 +232,9 @@ namespace EvHttpSharp.Interop
 
         
     
-        public static event Action<int, string> Log; 
-        
+        public static event Action<int, string> Log;
+
+        private static readonly D.log_cb LogCallbackDelegate = LogCallback;
         static void LogCallback(int sev, IntPtr message)
         {
             var msg = Marshal.PtrToStringAnsi(message);
@@ -283,7 +284,7 @@ namespace EvHttpSharp.Interop
                 fieldInfo.SetValue(null, Marshal.GetDelegateForFunctionPointer(funcPtr, fieldInfo.FieldType));
             }
 
-            EventSetLogCallback(LogCallback);
+            EventSetLogCallback(LogCallbackDelegate);
             var selectorPtr = platform == PlatformID.Win32NT
                                   ? loader.GetProcAddress(core, "evthread_use_windows_threads")
                                   : loader.GetProcAddress(loader.LoadLibrary(basePath, "libevent_pthreads"), "evthread_use_pthreads");
