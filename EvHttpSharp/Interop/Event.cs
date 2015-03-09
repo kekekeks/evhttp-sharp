@@ -142,7 +142,7 @@ namespace EvHttpSharp.Interop
                     EvHttp http, string pattern);
 
             [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-            public delegate int ev_remove_server_aliad(
+            public delegate int ev_remove_server_alias(
                     EvHttp http, string pattern);
 
             [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
