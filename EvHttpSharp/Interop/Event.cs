@@ -132,6 +132,22 @@ namespace EvHttpSharp.Interop
             [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
             public delegate EvConnListener evconnlistener_new_bind(
                 EventBase evBase, IntPtr cb, IntPtr ptr, uint flags, int backlog, ref sockaddr_in sockaddr, int socklen);
+
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            public delegate int evhttp_add_virtual_host(
+                    EvHttp http, [MarshalAs(UnmanagedType.LPStr)] string pattern, out IntPtr host);
+
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            public delegate int evhttp_add_server_alias(
+                    EvHttp http, [MarshalAs(UnmanagedType.LPStr)] string pattern);
+
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            public delegate int evhttp_remove_server_alias(
+                    EvHttp http, [MarshalAs(UnmanagedType.LPStr)] string pattern);
+
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            public delegate int evhttp_remove_virtual_host(
+                    EvHttp http, EvHttp host);
 #region *nix
             [UnmanagedFunctionPointer (CallingConvention.Cdecl)]
             public delegate void event_callback_normal(int fd, short events, IntPtr arg);
@@ -214,7 +230,10 @@ namespace EvHttpSharp.Interop
         [EvImport(EvDll.Extra)] public static D.evhttp_request_get_output_headers EvHttpRequestGetOutputHeaders;
         [EvImport(EvDll.Extra)] public static D.evhttp_connection_get_peer EvHttpConnectionGetPeer;
         [EvImport(EvDll.Extra)] public static D.evhttp_add_header EvHttpAddHeader;
-
+        [EvImport(EvDll.Extra)] public static D.evhttp_add_virtual_host EvHttpAddVirtualHost;
+        [EvImport(EvDll.Extra)] public static D.evhttp_remove_virtual_host EvHttpRemoveVirtualHost;
+        [EvImport(EvDll.Extra)] public static D.evhttp_add_server_alias EvHttpAddServerAlias;
+        [EvImport(EvDll.Extra)] public static D.evhttp_remove_server_alias EvHttpRemoveServerAlias;
 
         public static EvHttpBoundSocket EvHttpAcceptSocketWithHandle(EvHttp http, IntPtr fd)
         {
