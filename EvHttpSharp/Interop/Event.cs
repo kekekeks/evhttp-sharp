@@ -134,19 +134,19 @@ namespace EvHttpSharp.Interop
                 EventBase evBase, IntPtr cb, IntPtr ptr, uint flags, int backlog, ref sockaddr_in sockaddr, int socklen);
 
             [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-            public delegate int ev_add_virtual_host(
-                    EvHttp http, string pattern, EvHttp host);
+            public delegate int evhttp_add_virtual_host(
+                    EvHttp http, [MarshalAs(UnmanagedType.LPStr)] string pattern, out IntPtr host);
 
             [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-            public delegate int ev_add_server_alias(
-                    EvHttp http, string pattern);
+            public delegate int evhttp_add_server_alias(
+                    EvHttp http, [MarshalAs(UnmanagedType.LPStr)] string pattern);
 
             [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-            public delegate int ev_remove_server_alias(
-                    EvHttp http, string pattern);
+            public delegate int evhttp_remove_server_alias(
+                    EvHttp http, [MarshalAs(UnmanagedType.LPStr)] string pattern);
 
             [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-            public delegate int ev_remove_virtual_host(
+            public delegate int evhttp_remove_virtual_host(
                     EvHttp http, EvHttp host);
 #region *nix
             [UnmanagedFunctionPointer (CallingConvention.Cdecl)]
@@ -230,7 +230,10 @@ namespace EvHttpSharp.Interop
         [EvImport(EvDll.Extra)] public static D.evhttp_request_get_output_headers EvHttpRequestGetOutputHeaders;
         [EvImport(EvDll.Extra)] public static D.evhttp_connection_get_peer EvHttpConnectionGetPeer;
         [EvImport(EvDll.Extra)] public static D.evhttp_add_header EvHttpAddHeader;
-
+        [EvImport(EvDll.Extra)] public static D.evhttp_add_virtual_host EvHttpAddVirtualHost;
+        [EvImport(EvDll.Extra)] public static D.evhttp_remove_virtual_host EvHttpRemoveVirtualHost;
+        [EvImport(EvDll.Extra)] public static D.evhttp_add_server_alias EvHttpAddServerAlias;
+        [EvImport(EvDll.Extra)] public static D.evhttp_remove_server_alias EvHttpRemoveServerAlias;
 
         public static EvHttpBoundSocket EvHttpAcceptSocketWithHandle(EvHttp http, IntPtr fd)
         {
