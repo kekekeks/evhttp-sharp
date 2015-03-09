@@ -132,6 +132,22 @@ namespace EvHttpSharp.Interop
             [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
             public delegate EvConnListener evconnlistener_new_bind(
                 EventBase evBase, IntPtr cb, IntPtr ptr, uint flags, int backlog, ref sockaddr_in sockaddr, int socklen);
+
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            public delegate int ev_add_virtual_host(
+                    EvHttp http, string pattern, EvHttp host);
+
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            public delegate int ev_add_server_alias(
+                    EvHttp http, string pattern);
+
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            public delegate int ev_remove_server_aliad(
+                    EvHttp http, string pattern);
+
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            public delegate int ev_remove_virtual_host(
+                    EvHttp http, EvHttp host);
 #region *nix
             [UnmanagedFunctionPointer (CallingConvention.Cdecl)]
             public delegate void event_callback_normal(int fd, short events, IntPtr arg);
