@@ -30,7 +30,7 @@ namespace EvHttpSharp.OwinHost
                 {
                     var env = new Dictionary<string, object>();
                     env["owin.RequestBody"] = new MemoryStream(req.RequestBody);
-                    env["owin.RequestHeaders"] = req.Headers.ToDictionary(x => x.Key, x => x.Value.ToArray());
+                    env["owin.RequestHeaders"] = req.Headers.ToDictionary(x => x.Key, x => x.Value.ToArray(), StringComparer.OrdinalIgnoreCase);
                     env["owin.RequestMethod"] = req.Method;
 
                     var pairs = req.Uri.Split(new[] { '?' }, 2);
